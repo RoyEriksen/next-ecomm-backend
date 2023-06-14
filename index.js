@@ -9,10 +9,18 @@ app.use(express.json()); // allows handling of json payloads in routes
 
 app.use('/api', routes);
 
-app.get('/api', async (req, res) => {
+app.get('/api/users', async (req, res) => {
     const allUsers = await prisma.user.findMany()
     res.json(allUsers)
 })
+
+app.get('/api/users/:id', async (req, res) => {
+    const userId = parseInt(req.params.id);
+    const user = await prisma.user.findUnique({
+        where: { id: userId},
+    });
+    res.json(user);
+});
 
 app.post('/api/users', async (req, res) => {
     const { name, email, password } = req.body;
