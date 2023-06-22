@@ -1,6 +1,7 @@
 import express from 'express';
 import prisma from './src/utils/prisma.js';
 import bcrypt from 'bcryptjs';
+import { signAccessToken } from './src/utils/jwt.js';
 
 const router = express.Router();
 
@@ -62,14 +63,13 @@ router.post('/users', async (req, res) => {
         //Hash the password using the generated salt
         const hashedPassword = bcrypt.hashSync(password, salt);
 
-
-        console.log("Before user creation")
         const newUser = await prisma.user.create({
             data: { firstName, lastName, email, password: hashedPassword },
         });
 
         // const filteredUser = filter(newUser, 'id', 'firstName', 'lastName', 'email')
         res.json(newUser);
+
         
     } catch (error) {
         res.status(500).json({ error: 'Failed to create user' });
@@ -78,38 +78,37 @@ router.post('/users', async (req, res) => {
 
 router.get('/users', async (req, res) => {
     const allUsers = await prisma.user.findMany({
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true
-      }
+        select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+        }
     });
-  
+    
     res.json(allUsers);
-  });
-  
+});
 
 router.get('/users/:id', async (req, res) => {
     const userId = parseInt(req.params.id);
     const user = await prisma.user.findUnique({
         where: { id: userId},
     });
-
+    
     if (!user) {
         return res.status(404).json({error: 'User not found' });
     }
-
+    
     //Filter out the password property using the filter function
     const filteredUser = filter(user, 'id', 'firstName', 'lastName', 'email');
-
+    
     res.json(filteredUser);
 });
 
 router.put('/users/:id', async (req, res) => {
     const userId = parseInt(req.params.id);
     const { firstName, lastName, email, password } = req.body;
-
+    
     try {
         const updatedUser = await prisma.user.update({
             where: { id: userId },
@@ -119,7 +118,7 @@ router.put('/users/:id', async (req, res) => {
                 email,
             },
         });
-
+        
         res.json(updatedUser);
     } catch (error) {
         res.status(500).json({ error: 'Failed to update user' });
@@ -128,16 +127,43 @@ router.put('/users/:id', async (req, res) => {
 
 router.delete('/users/:id', async (req, res) => {
     const userId = parseInt(req.params.id);
-
+    
     try {
         // Delete the user with the specified ID
         await prisma.user.delete({
             where: { id: userId },
         });
-
+        
         res.json({ message: 'User deleted succssfully' });
     } catch (error){
         res.status(500).json({ error: 'Failed to delete user' })
+    }
+});
+
+router.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+    
+    try {
+        //Retrieve user record based on the submitted email
+        const user = await prisma.user.findUnique({ where: { email }});
+        
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+        
+        //Compare the submitte password with the stored password
+        
+        const checkPassword = bcrypt.compareSync(password, user.password)
+        if (!checkPassword) {
+            return res.status(401).json({ error: 'Invalid credentials'});
+        }
+        
+        const filteredUser= filter(user, 'id', 'firstName', 'lastName', 'email');
+        const accessToken = await signAccessToken(filteredUser);
+        return res.json({ accessToken });
+        } catch (error) {
+        console.error('Error during login:', error);
+        return res.status(500).json({ error: 'Server error' });
     }
 });
 
