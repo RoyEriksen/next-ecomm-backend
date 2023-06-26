@@ -1,171 +1,171 @@
-import express from 'express';
-import prisma from './src/utils/prisma.js';
-import bcrypt from 'bcryptjs';
-import { signAccessToken } from './src/utils/jwt.js';
+// import express from 'express';
+// import prisma from './src/utils/prisma.js';
+// import bcrypt from 'bcryptjs';
+// import { signAccessToken } from './src/utils/jwt.js';
 
-const router = express.Router();
+// const router = express.Router();
 
-function filter(obj, ...keys) {
-    if (typeof obj !== 'object' || Array.isArray(obj)) {
-        return {};
-    }
+// function filter(obj, ...keys) {
+//     if (typeof obj !== 'object' || Array.isArray(obj)) {
+//         return {};
+//     }
 
-    return keys.reduce((acc, key) => {
-        if (obj.hasOwnProperty(key)) {
-          acc[key] = obj[key];
-        }
-        return acc;
-      }, {});
-    }
+//     return keys.reduce((acc, key) => {
+//         if (obj.hasOwnProperty(key)) {
+//           acc[key] = obj[key];
+//         }
+//         return acc;
+//       }, {});
+//     }
 
-router.post('/users', async (req, res) => {
-    // Request body validation
-    const { firstName, lastName, email, password } = req.body;
-    if (!firstName) {
-        return res.status(400).json({ error: 'First name is required' });
-    }
-    if (!lastName) {
-        return res.status(400).json({ error: 'Last name is required' });
-    }
-    if (!email) {
-        return res.status(400).json({ error: 'Email is required' });
-    }
+// router.post('/users', async (req, res) => {
+//     // Request body validation
+//     const { firstName, lastName, email, password } = req.body;
+//     if (!firstName) {
+//         return res.status(400).json({ error: 'First name is required' });
+//     }
+//     if (!lastName) {
+//         return res.status(400).json({ error: 'Last name is required' });
+//     }
+//     if (!email) {
+//         return res.status(400).json({ error: 'Email is required' });
+//     }
 
-    if (!email.match(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/)) {
-        return res.status(400).json({ error: 'Invalid email format'})
-    }
+//     if (!email.match(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/)) {
+//         return res.status(400).json({ error: 'Invalid email format'})
+//     }
 
-    if (!password) {
-        return res.status(400).json({ error: 'Password is required' });
-    }
+//     if (!password) {
+//         return res.status(400).json({ error: 'Password is required' });
+//     }
 
-    if (password.length < 8 ) {
-        return res.status(400).json({ error: 'Password should be at least 8 characters'})
-    }
+//     if (password.length < 8 ) {
+//         return res.status(400).json({ error: 'Password should be at least 8 characters'})
+//     }
     
-    console.log('req.body: ', req.body)
+//     console.log('req.body: ', req.body)
 
-    // Create a new user
-    try {
-        //check if the email is already taken
-        const existingUser = await prisma.user.findUnique({
-            where: { email },
-        });
+//     // Create a new user
+//     try {
+//         //check if the email is already taken
+//         const existingUser = await prisma.user.findUnique({
+//             where: { email },
+//         });
 
-        if (existingUser) {
-            return res.status(400).json({ error: 'This email is already registered'});
-        }
+//         if (existingUser) {
+//             return res.status(400).json({ error: 'This email is already registered'});
+//         }
     
-        //Generate a salt to use for password hashing
-        const saltRounds = 10;
-        const salt = bcrypt.genSaltSync(saltRounds);
+//         //Generate a salt to use for password hashing
+//         const saltRounds = 10;
+//         const salt = bcrypt.genSaltSync(saltRounds);
 
-        //Hash the password using the generated salt
-        const hashedPassword = bcrypt.hashSync(password, salt);
+//         //Hash the password using the generated salt
+//         const hashedPassword = bcrypt.hashSync(password, salt);
 
-        const newUser = await prisma.user.create({
-            data: { firstName, lastName, email, password: hashedPassword },
-        });
+//         const newUser = await prisma.user.create({
+//             data: { firstName, lastName, email, password: hashedPassword },
+//         });
 
-        // const filteredUser = filter(newUser, 'id', 'firstName', 'lastName', 'email')
-        res.json(newUser);
+//         // const filteredUser = filter(newUser, 'id', 'firstName', 'lastName', 'email')
+//         res.json(newUser);
 
         
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to create user' });
-    }
-});
+//     } catch (error) {
+//         res.status(500).json({ error: 'Failed to create user' });
+//     }
+// });
 
-router.get('/users', async (req, res) => {
-    const allUsers = await prisma.user.findMany({
-        select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true
-        }
-    });
+// router.get('/users', async (req, res) => {
+//     const allUsers = await prisma.user.findMany({
+//         select: {
+//             id: true,
+//             firstName: true,
+//             lastName: true,
+//             email: true
+//         }
+//     });
     
-    res.json(allUsers);
-});
+//     res.json(allUsers);
+// });
 
-router.get('/users/:id', async (req, res) => {
-    const userId = parseInt(req.params.id);
-    const user = await prisma.user.findUnique({
-        where: { id: userId},
-    });
+// router.get('/users/:id', async (req, res) => {
+//     const userId = parseInt(req.params.id);
+//     const user = await prisma.user.findUnique({
+//         where: { id: userId},
+//     });
     
-    if (!user) {
-        return res.status(404).json({error: 'User not found' });
-    }
+//     if (!user) {
+//         return res.status(404).json({error: 'User not found' });
+//     }
     
-    //Filter out the password property using the filter function
-    const filteredUser = filter(user, 'id', 'firstName', 'lastName', 'email');
+//     //Filter out the password property using the filter function
+//     const filteredUser = filter(user, 'id', 'firstName', 'lastName', 'email');
     
-    res.json(filteredUser);
-});
+//     res.json(filteredUser);
+// });
 
-router.put('/users/:id', async (req, res) => {
-    const userId = parseInt(req.params.id);
-    const { firstName, lastName, email, password } = req.body;
+// router.put('/users/:id', async (req, res) => {
+//     const userId = parseInt(req.params.id);
+//     const { firstName, lastName, email, password } = req.body;
     
-    try {
-        const updatedUser = await prisma.user.update({
-            where: { id: userId },
-            data: {
-                firstName,
-                lastName,
-                email,
-            },
-        });
+//     try {
+//         const updatedUser = await prisma.user.update({
+//             where: { id: userId },
+//             data: {
+//                 firstName,
+//                 lastName,
+//                 email,
+//             },
+//         });
         
-        res.json(updatedUser);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to update user' });
-    }
-});
+//         res.json(updatedUser);
+//     } catch (error) {
+//         res.status(500).json({ error: 'Failed to update user' });
+//     }
+// });
 
-router.delete('/users/:id', async (req, res) => {
-    const userId = parseInt(req.params.id);
+// router.delete('/users/:id', async (req, res) => {
+//     const userId = parseInt(req.params.id);
     
-    try {
-        // Delete the user with the specified ID
-        await prisma.user.delete({
-            where: { id: userId },
-        });
+//     try {
+//         // Delete the user with the specified ID
+//         await prisma.user.delete({
+//             where: { id: userId },
+//         });
         
-        res.json({ message: 'User deleted succssfully' });
-    } catch (error){
-        res.status(500).json({ error: 'Failed to delete user' })
-    }
-});
+//         res.json({ message: 'User deleted succssfully' });
+//     } catch (error){
+//         res.status(500).json({ error: 'Failed to delete user' })
+//     }
+// });
 
-router.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+// router.post('/login', async (req, res) => {
+//     const { email, password } = req.body;
     
-    try {
-        //Retrieve user record based on the submitted email
-        const user = await prisma.user.findUnique({ where: { email }});
+//     try {
+//         //Retrieve user record based on the submitted email
+//         const user = await prisma.user.findUnique({ where: { email }});
         
-        if (!user) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-        }
+//         if (!user) {
+//             return res.status(401).json({ error: 'Invalid credentials' });
+//         }
         
-        //Compare the submitte password with the stored password
+//         //Compare the submitte password with the stored password
         
-        const checkPassword = bcrypt.compareSync(password, user.password)
-        if (!checkPassword) {
-            return res.status(401).json({ error: 'Invalid credentials'});
-        }
+//         const checkPassword = bcrypt.compareSync(password, user.password)
+//         if (!checkPassword) {
+//             return res.status(401).json({ error: 'Invalid credentials'});
+//         }
         
-        const filteredUser= filter(user, 'id', 'firstName', 'lastName', 'email');
-        const accessToken = await signAccessToken(filteredUser);
-        return res.json({ accessToken });
-        } catch (error) {
-        console.error('Error during login:', error);
-        return res.status(500).json({ error: 'Server error' });
-    }
-});
+//         const filteredUser= filter(user, 'id', 'firstName', 'lastName', 'email');
+//         const accessToken = await signAccessToken(filteredUser);
+//         return res.json({ accessToken });
+//         } catch (error) {
+//         console.error('Error during login:', error);
+//         return res.status(500).json({ error: 'Server error' });
+//     }
+// });
 
-export default router;
+// export default router;
 

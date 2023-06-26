@@ -18,7 +18,6 @@ describe("POST /api/users", () => {
     email: 'john9@example.com',
     password: 'insecure',
   }
-
   beforeAll(async () => {
     await cleanupDatabase()
 
@@ -34,10 +33,10 @@ describe("POST /api/users", () => {
       .send(user)
       .set('Accept', 'application/json')
     expect(response.statusCode).toBe(200);
-    expect(response.body.id).toBeTruthy;
+    expect(response.body.id).toBeTruthy();
     expect(response.body.firstName).toBe(user.firstName);
     expect(response.body.lastName).toBe(user.lastName);
     expect(response.body.email).toBe(user.email);
-    expect(response.body.password).toBeDefined(); // check if password exists
+    expect(response.body.password).toBe(undefined); // check if password exists
   });
 })

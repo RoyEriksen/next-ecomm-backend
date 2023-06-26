@@ -28,12 +28,12 @@ describe("POST /api/users", () => {
     await cleanupDatabase()
   })
 
-  it("with invalid email format should return an error", async () => {
+  it("with blank name should return an error", async () => {
     const response = await request(app)
       .post("/api/users")
       .send(user)
       .set('Accept', 'application/json')
     expect(response.statusCode).toBe(400);
-    expect(response.body.error).toBe('First name is required'); // check if password exists
+    expect(response.body.error.firstName).toBe('First name is required'); 
   });
 })

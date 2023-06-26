@@ -11,7 +11,7 @@ async function cleanupDatabase() {
   );
 }
 
-describe("POST /api/users", () => {
+describe("POST /api/login", () => {
   const user = {
     firstName: 'John',
     lastName: 'Wilson',
@@ -30,10 +30,10 @@ describe("POST /api/users", () => {
 
   it("with invalid email format should return an error", async () => {
     const response = await request(app)
-      .post('/api/users')
+      .post('/api/login')
       .send(user)
       .set('Accept', 'application/json')
-    expect(response.statusCode).toBe(400);
-    expect(response.body.error).toBe('Invalid email format'); // check if password exists
+    expect(response.statusCode).toBe(401);
+    expect(response.body.error).toBe('User does not exist'); // check if password exists
   });
 })

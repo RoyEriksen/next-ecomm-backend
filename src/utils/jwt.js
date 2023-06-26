@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+
 const accessTokenSecret = process.env.APP_SECRET
 
 export function signAccessToken(payload) {

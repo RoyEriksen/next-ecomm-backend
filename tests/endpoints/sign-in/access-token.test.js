@@ -40,7 +40,7 @@ describe('User API', () => {
     // Log in the created user
     const loginResponse = await request(app)
       .post('/api/login')
-      .send({ email: user.email, password: user.password })
+      .send(user)
       .set('Accept', 'application/json');
       
 
